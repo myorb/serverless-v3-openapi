@@ -1,6 +1,6 @@
 {
   "name": "serverless-v3-openapi",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Serverless plugin to generate OpenAPI V3 documentation from serverless configuration",
   "main": "./dist/index.js",
   "engines": {

@@ -8,7 +8,7 @@ import * as yaml from 'js-yaml';
 const validator = require('oas-validator');
 const { log } = require('@serverless/utils/log');
 
-class ServerlessPlugin {
+class ServerlessOpenAPIDocumentation {
     serverless: Serverless;
     options: any;
     commands: {};
@@ -174,4 +174,4 @@ class ServerlessPlugin {
     }
 }
 
-module.exports = ServerlessPlugin;
+module.exports = ServerlessOpenAPIDocumentation;

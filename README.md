@@ -1,11 +1,7 @@
-# Serverless OpenAPI Documentation Plugin
+# Serverless v3 OpenAPI v3 Documentation Plugin
 
-[![NPM](https://img.shields.io/npm/v/@conqa/serverless-openapi-documentation.svg)](https://npmjs.org/packages/@conqa/serverless-openapi-documentation/)
-[![Travis CI](https://img.shields.io/travis/conqa/serverless-openapi-documentation.svg)](https://travis-ci.org/conqa/serverless-openapi-documentation)
-
-Generates [**OpenAPI 3.0.0**](https://github.com/OAI/OpenAPI-Specification/blob/3.0.0/versions/3.0.0.md) documentation from serverless configuration files. OpenAPI is formerly known as Swagger. The configuration is inspired by the format used in [serverless-aws-documentation](https://www.npmjs.com/package/serverless-aws-documentation). This plugin takes over [serverless-openapi-documentation](https://www.npmjs.com/package/serverless-openapi-documentation), which was no longer maintained. It aims to provide improvements, and especially adds support for API Gateway's [HTTP Apis](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html).
-
-Works well with [ReDoc](https://github.com/Rebilly/ReDoc).
+Generates [**OpenAPI 3.0.2**](https://spec.openapis.org/oas/v3.0.2) documentation from serverless configuration files. OpenAPI is formerly known as Swagger. The configuration is inspired by the format used in [serverless-aws-documentation](https://www.npmjs.com/package/serverless-aws-documentation). This plugin takes over [serverless-openapi-documentation](https://www.npmjs.com/package/serverless-openapi-documentation), which was no longer maintained. It aims to provide improvements, and especially adds support for API Gateway's [HTTP Apis](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html).
+Also using openapi converter [json-schema-to-openapi-schema](https://github.com/openapi-contrib/json-schema-to-openapi-schema)  
 
 ---
 
@@ -31,14 +27,14 @@ This plugin requires additional configuration to use, see the "[Configuration](#
 Below are the commandline options to run the generator:
 
 ```bash
-serverless openapi generate [options]
+serverless openapi [options]
 ```
 
 ### Options
 
 ```bash
 Plugin: ServerlessOpenAPIDocumentation
-openapi generate  ...................... Generate OpenAPI v3 Documentation
+openapi           ...................... Generate OpenAPI v3 Documentation
     --output / -o ...................... Output file location [default: openapi.yml|json]
     --format / -f ...................... OpenAPI file format (yml|json) [default: yml]
     --indent / -i ...................... File indentation in spaces [default: 2]
@@ -325,7 +321,7 @@ npm install serverless-v3-openapi --save-dev
 **Using Yarn:**
 
 ```bash
-yarn add serverless-v3-openapi --dev
+yarn add -D serverless-v3-openapi
 ```
 
 Next you need to add the plugin to the `plugins` section of your `serverless.yml` file.
@@ -344,6 +340,10 @@ serverless | grep -i "ServerlessOpenAPIDocumentation"
 It should return `ServerlessOpenAPIDocumentation` as one of the plugins on the list.
 
 > Note: Add this plugin _after_ `serverless-offline` to prevent issues with `String.replaceAll` being overridden incorrectly.
+
+## From author 
+
+I'm using this plugin to generate Openapi from typescript, for that, I'm using ts-json-schema-generator and generating schema draft-07. In OpenApi v3.1.0 it is possible to load schemas as components without any hassle, but currently, https://editor.swagger.io/ didn't support v 3.1.0. So this is my hack to have working documentation!  
 
 ## License
 
