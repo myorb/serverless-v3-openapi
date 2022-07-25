@@ -5,3 +5,4 @@ node_modules
 .directory
 .DS_STORE*
 *.log
+.vscode
