@@ -1,10 +1,8 @@
 import { JSONSchema7 } from "json-schema";
-import * as $RefParser from "json-schema-ref-parser";
-import * as _ from "lodash";
-import * as path from "path";
-
+import $RefParser from "@apidevtools/json-schema-ref-parser";
+import _ from "lodash";
 import { Model } from "./types";
-import { cleanSchema } from "./utils";
+import toOpenApi from '@openapi-contrib/json-schema-to-openapi-schema';
 
 function updateReferences(schema: JSONSchema7): JSONSchema7 {
   if (!schema) {
@@ -20,6 +18,11 @@ function updateReferences(schema: JSONSchema7): JSONSchema7 {
     };
   }
 
+  if (Array.isArray(cloned.type) && cloned.type.indexOf('null') > -1) {
+    return { anyOf: cloned.type.map((t) => (t === 'null' ? { nullable: true } : { type: t })) };
+  }
+
+  // TODO: fix this
   for (const key of Object.getOwnPropertyNames(cloned)) {
     const value = cloned[key];
 
@@ -31,10 +34,11 @@ function updateReferences(schema: JSONSchema7): JSONSchema7 {
   return cloned;
 }
 
-export async function parseModels(
+export default async function parseModels(
   models: Array<Model>,
-  root: string
 ): Promise<{}> {
+
+
   const schemas = {};
 
   if (!_.isArrayLike(models)) {
@@ -46,14 +50,18 @@ export async function parseModels(
       continue;
     }
 
-    const schema = (typeof model.schema === "string"
-      ? await $RefParser.bundle(path.resolve(root, model.schema))
-      : model.schema) as JSONSchema7;
+    const newSchema = await convertToOpenApi(model.schema);
 
-    _.assign(schemas, updateReferences(schema.definitions), {
-      [model.name]: updateReferences(cleanSchema(schema))
-    });
+    _.assign(schemas,
+      { [model.name]: newSchema },
+      updateReferences(newSchema.definitions),
+    );
   }
 
   return schemas;
+}
+
+async function convertToOpenApi(input: JSONSchema7 | string): Promise<string | any> {
+  const schema = await $RefParser.dereference(input)
+  return await toOpenApi(schema)
 }

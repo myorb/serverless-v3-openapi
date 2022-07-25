@@ -1,9 +1,0 @@
-{
-  "name": "openapi-test-package",
-  "devDependencies": {
-    "serverless": "^1.41.1"
-  },
-  "dependencies": {
-    "typescript": "^3.4.5"
-  }
-}

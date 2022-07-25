@@ -1,21 +1,21 @@
 import _ = require("lodash");
-// tslint:disable-next-line no-submodule-imports
-import { validateSync as openApiValidatorSync } from "swagger2openapi/validate";
-import * as uuid from "uuid";
-
-import { parseModels } from "./parse";
+import { v4 as uuidv4 } from 'uuid';
+import parseModels from "./parse";
 import {
   Definition,
   DefinitionConfig,
+  Model,
   Operation,
   ParameterConfig,
-  ServerlessFunctionConfig
+  ServerlessFunctionConfig,
 } from "./types";
 import { cleanSchema } from "./utils";
 
+const { log } = require('@serverless/utils/log');
+
 export class DefinitionGenerator {
   // The OpenAPI version we currently validate against
-  public version = "3.0.0";
+  public version = "3.0.2";
 
   // Base configuration object
   public definition: Definition = {
@@ -25,21 +25,18 @@ export class DefinitionGenerator {
 
   public config: DefinitionConfig;
 
-  private root: string;
-
   /**
    * Constructor
    */
-  public constructor(config: DefinitionConfig, root: string) {
+  public constructor(config: DefinitionConfig) {
     this.config = _.cloneDeep(config);
-    this.root = root;
   }
 
   public async parse() {
     const {
       title = "",
       description = "",
-      version = uuid.v4(),
+      version = uuidv4(),
       models,
       security,
       securitySchemes,
@@ -67,26 +64,9 @@ export class DefinitionGenerator {
       this.definition.servers = servers;
     }
 
-    this.definition.components.schemas = await parseModels(models, this.root);
+    this.definition.components.schemas = await parseModels(models);
 
     return this;
-  }
-
-  public validate(): {
-    valid: boolean;
-    context: Array<string>;
-    warnings: Array<any>;
-    error?: Array<any>;
-  } {
-    const payload: any = {};
-
-    try {
-      openApiValidatorSync(this.definition, payload);
-    } catch (error) {
-      payload.error = error.message;
-    }
-
-    return payload;
   }
 
   /**
@@ -129,7 +109,7 @@ export class DefinitionGenerator {
    */
   private getOperationFromConfig(
     funcName: string,
-    documentationConfig
+    documentationConfig: any
   ): Operation {
     const operationObj: Operation = {
       operationId: funcName
@@ -168,7 +148,7 @@ export class DefinitionGenerator {
    * Derives Path, Query and Request header parameters from Serverless documentation
    * @param documentationConfig
    */
-  private getParametersFromConfig(documentationConfig): Array<ParameterConfig> {
+  private getParametersFromConfig(documentationConfig: { pathParams: any; queryParams: any; requestHeaders: any; cookieParams: any; }): Array<ParameterConfig> {
     const parameters: Array<ParameterConfig> = [];
 
     // Build up parameters from configuration for each parameter type
@@ -243,7 +223,7 @@ export class DefinitionGenerator {
    * Derives request body schemas from event documentation configuration
    * @param documentationConfig
    */
-  private getRequestBodiesFromConfig(documentationConfig) {
+  private getRequestBodiesFromConfig(documentationConfig: { requestModels: { [x: string]: any; }; requestBody: { description: string | undefined; }; }) {
     const requestBodies = {};
 
     if (!documentationConfig.requestModels) {
@@ -303,7 +283,7 @@ export class DefinitionGenerator {
     return requestBodies;
   }
 
-  private attachExamples(target, config) {
+  private attachExamples(target: Model, config: { schema: { $ref: string; } | { $ref: string; }; }) {
     if (target.examples && Array.isArray(target.examples)) {
       _.merge(config, { examples: _.cloneDeep(target.examples) });
     } else if (target.example) {
@@ -315,7 +295,7 @@ export class DefinitionGenerator {
    * Gets response bodies from documentation config
    * @param documentationConfig
    */
-  private getResponsesFromConfig(documentationConfig) {
+  private getResponsesFromConfig(documentationConfig: { methodResponses: any; }) {
     const responses = {};
     if (documentationConfig.methodResponses) {
       for (const response of documentationConfig.methodResponses) {
@@ -334,14 +314,14 @@ export class DefinitionGenerator {
         if (response.responseHeaders) {
           methodResponseConfig.headers = {};
           for (const header of response.responseHeaders) {
-            methodResponseConfig.headers[header.name] = {
-              description: header.description || `${header.name} header`
-            };
-            if (header.schema) {
-              methodResponseConfig.headers[header.name].schema = cleanSchema(
-                header.schema
-              );
-            }
+              methodResponseConfig.headers[header.name] = {
+                description: header.description || `${header.name} header`
+              };
+              if (header.schema) {
+                methodResponseConfig.headers[header.name].schema = cleanSchema(
+                  header.schema
+                );
+              }  
           }
         }
 
@@ -354,7 +334,7 @@ export class DefinitionGenerator {
     return responses;
   }
 
-  private getResponseContent(response) {
+  private getResponseContent(response: { [x: string]: any; }) {
     const content = {};
 
     for (const responseKey of Object.keys(response)) {
@@ -378,8 +358,12 @@ export class DefinitionGenerator {
     return content;
   }
 
-  private getHttpEvents(funcConfig) {
-    return funcConfig.filter(event =>
+  private getHttpEvents(funcConfig: any[] | undefined) {
+    if (!funcConfig) {
+      log(`No events found for function getHttpEvents`);
+      return [];
+    }
+    return funcConfig.filter((event: { http: any; httpApi: any; }) =>
       event.http || event.httpApi ? true : false
     );
   }

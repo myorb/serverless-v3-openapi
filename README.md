@@ -105,7 +105,7 @@ custom:
         description: "Inline schema example"
         contentType: "application/json"
         schema:
-          $schema: "http://json-schema.org/draft-04/schema#"
+          $schema: "http://json-schema.org/draft-07/schema#"
           properties:
             SomeObject:
               type: "object"
@@ -312,27 +312,27 @@ Please view the example [serverless.yml](test/project/serverless.yml).
 
 ## Install
 
-This plugin works for Serverless 1.x and up. Serverless 0.5 is not supported.
+This plugin works for Serverless 3.x and up. Serverless 0.5 is not supported.
 
 To add this plugin to your package.json:
 
 **Using npm:**
 
 ```bash
-npm install serverless-openapi --save-dev
+npm install serverless-v3-openapi --save-dev
 ```
 
 **Using Yarn:**
 
 ```bash
-yarn add serverless-openapi --dev
+yarn add serverless-v3-openapi --dev
 ```
 
 Next you need to add the plugin to the `plugins` section of your `serverless.yml` file.
 
 ```yml
 plugins:
-  - serverless-openapi
+  - serverless-v3-openapi
 ```
 
 You can confirm the plugin is correctly installed by running:
